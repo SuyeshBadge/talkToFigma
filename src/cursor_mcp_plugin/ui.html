@@ -275,15 +275,13 @@
             </button>
           </div>
 
-          <div id="port-container">
-            <label for="port">WebSocket Server Port</label>
+          <div id="server-url-container">
+            <label for="server-url">WebSocket Server URL</label>
             <input
-              type="number"
-              id="port"
-              placeholder="3055"
-              value="3055"
-              min="1024"
-              max="65535"
+              type="text"
+              id="server-url"
+              placeholder="wss://your-relay-server.com or ws://localhost:3055"
+              value="wss://ttf.stackupai.in"
             />
           </div>
         </div>
@@ -388,7 +386,7 @@
       };
 
       // UI Elements
-      const portInput = document.getElementById("port");
+      const serverUrlInput = document.getElementById("server-url");
       const connectButton = document.getElementById("btn-connect");
       const connectionStatus = document.getElementById("connection-status");
 
@@ -415,7 +413,7 @@
 
         // Add instructions for localhost when disconnected
         if (!isConnected) {
-          statusMessage += `<br><br>Run this in your terminal, then connect<br><code>bunx cursor-talk-to-figma-socket</code>`;
+          statusMessage += `<br><br>Enter your relay server URL above and click Connect`;
         }
 
         connectionStatus.innerHTML = statusMessage;
@@ -426,7 +424,7 @@
         // Update connect button text and style based on connection state
         connectButton.textContent = isConnected ? "Disconnect" : "Connect";
         connectButton.className = isConnected ? "secondary" : "primary";
-        portInput.disabled = isConnected;
+        serverUrlInput.disabled = isConnected;
 
         // Show/hide MCP config section
         const mcpConfig = document.getElementById("mcp-config");
@@ -439,15 +437,14 @@
       }
 
       // Connect to WebSocket server
-      async function connectToServer(port) {
+      async function connectToServer(serverUrl) {
         try {
           if (state.connected && state.socket) {
             updateConnectionStatus(true, "Already connected to server");
             return;
           }
 
-          state.serverPort = port;
-          const wsUrl = `ws://localhost:${port}`;
+          const wsUrl = serverUrl;
 
           state.socket = new WebSocket(wsUrl);
 
@@ -486,7 +483,7 @@
                     {
                       pluginMessage: {
                         type: "notify",
-                        message: `Connected to Cursor MCP server on port ${port} in channel: ${channelName}`,
+                        message: `Connected to Cursor MCP server at ${wsUrl} in channel: ${channelName}`,
                       },
                     },
                     "*"
@@ -691,10 +688,10 @@
           connectionStatus.className = "status info";
           disconnectFromServer();
         } else {
-          const port = parseInt(portInput.value, 10) || 3055;
+          const serverUrl = serverUrlInput.value.trim() || "wss://ttf.stackupai.in";
           updateConnectionStatus(false, "Connecting...");
           connectionStatus.className = "status info";
-          connectToServer(port);
+          connectToServer(serverUrl);
         }
       });
 
